@@ -2,12 +2,10 @@
 #define HTTPINTERFACE_H
 
 #include <QObject>
+#include <QUrl>
 
 #include <QNetworkAccessManager>
-#include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QUrl>
-#include <cstring>
 
 
 class HttpInterface : public QObject
@@ -16,27 +14,18 @@ class HttpInterface : public QObject
 public:
     explicit HttpInterface(QObject *parent = 0);
 
-    void get(QUrl path);
 
-    void setparams(QByteArray data);
+    void get(QUrl url, HttpInterface *interface);
 
-    void shoot(QByteArray af);
+    void put(QUrl url, QByteArray data, HttpInterface *interface);
+
+    void post(QUrl url, QByteArray data, HttpInterface *interface);
 
 signals:
-    void finished(QByteArray buffer);
+
+    void finished(QByteArray data, HttpInterface *interface);
 
 public slots:
-
-
-
-private:
-
-    QUrl url;
-    QNetworkAccessManager *manager;
-    QNetworkReply *reply;
-    QByteArray buffer;
-
-
 };
 
 #endif // HTTPINTERFACE_H

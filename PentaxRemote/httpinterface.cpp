@@ -2,38 +2,41 @@
 
 HttpInterface::HttpInterface(QObject *parent) : QObject(parent)
 {
-    manager = new QNetworkAccessManager(this);
 
 }
 
-void HttpInterface::get(QUrl path)
+void HttpInterface::get(QUrl url, HttpInterface *interface)
 {
-    buffer.clear();
-    reply = manager->get(QNetworkRequest(path));
-    connect(reply,&QNetworkReply::readyRead,[=](){buffer.append(reply->readAll());});
-    connect(reply,&QNetworkReply::finished,[=](){emit finished(buffer);});
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QByteArray *buffer = new QByteArray();
+    buffer->clear();
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+    connect(reply,&QNetworkReply::readyRead,[=](){buffer->append(reply->readAll());});
+    connect(reply,&QNetworkReply::finished,[=](){finished(*buffer, interface);});
 }
 
-void HttpInterface::setparams(QByteArray data)
+void HttpInterface::put(QUrl url, QByteArray data, HttpInterface *interface)
 {
-    buffer.clear();
-    url = QUrl("http://192.168.0.1/v1/params/camera");
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QByteArray *buffer = new QByteArray();
+    buffer->clear();
     QNetworkRequest request;
     request.setHeader(QNetworkRequest::ContentTypeHeader, QString("text/xml"));
     request.setUrl(url);
-    reply = manager->put(request,data);
-    connect(reply,&QNetworkReply::readyRead,[=](){buffer.append(reply->readAll());});
-    connect(reply,&QNetworkReply::finished,[=](){emit finished(buffer);});
+    QNetworkReply *reply = manager->put(request,data);
+    connect(reply,&QNetworkReply::readyRead,[=](){buffer->append(reply->readAll());});
+    connect(reply,&QNetworkReply::finished,[=](){finished(*buffer, interface);});
 }
 
-void HttpInterface::shoot(QByteArray af)
+void HttpInterface::post(QUrl url, QByteArray data, HttpInterface *interface)
 {
-    buffer.clear();
-    url = QUrl("http://192.168.0.1/v1/camera/shoot");
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QByteArray *buffer = new QByteArray();
+    buffer->clear();
     QNetworkRequest request;
     request.setHeader(QNetworkRequest::ContentTypeHeader, QString("text/xml"));
     request.setUrl(url);
-    reply = manager->put(request,af);
-    connect(reply,&QNetworkReply::readyRead,[=](){buffer.append(reply->readAll());});
-    connect(reply,&QNetworkReply::finished,[=](){emit finished(buffer);});
+    QNetworkReply *reply = manager->post(request,data);
+    connect(reply,&QNetworkReply::readyRead,[=](){buffer->append(reply->readAll());});
+    connect(reply,&QNetworkReply::finished,[=](){finished(*buffer, interface);});
 }

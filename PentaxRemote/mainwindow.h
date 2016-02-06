@@ -1,14 +1,18 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <functional>
 #include <QMainWindow>
-#include "httpinterface.h"
-
+#include <QStandardItemModel>
+#include <QStandardItem>
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QUrl>
+
+#include "httpinterface.h"
 
 namespace Ui {
 class MainWindow;
@@ -24,7 +28,9 @@ public:
 
 private slots:
 
-    void loadparams(QByteArray data);
+    void loadparams(QByteArray data, HttpInterface *iface);
+
+    void loadcameraparams(QByteArray data, HttpInterface *iface);
 
     void on_wbcombo_currentIndexChanged(const QString &arg1);
 
@@ -48,13 +54,20 @@ private slots:
 
     void on_pushshoot_clicked();
 
-    void on_shoot(QByteArray data);
+    void on_shoot(QByteArray data, HttpInterface *iface);
+
+    void on_pics(QByteArray data, HttpInterface *iface);
+
+signals:
+
+
 
 private:
     Ui::MainWindow *ui;
-    HttpInterface interface;
     QJsonObject props;
+    QStringList pics;
 
+    void get_pics();
 
 };
 
