@@ -16,9 +16,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    httpinterface.cpp
+    httpinterface.cpp \
+    gallerynode.cpp
 
 HEADERS  += mainwindow.h \
-    httpinterface.h
+    httpinterface.h \
+    gallerynode.h
 
 FORMS    += mainwindow.ui

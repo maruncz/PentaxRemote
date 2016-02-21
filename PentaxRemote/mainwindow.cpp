@@ -6,7 +6,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    get_pics();
+    refresh = new QTimer(this);
+    refresh->setInterval(1000);
+    connect(refresh,&QTimer::timeout,this,&MainWindow::get_pics);
+    refresh->start();
+    //get_pics();
     HttpInterface *params = new HttpInterface();
     connect(params,&HttpInterface::finished,this,&MainWindow::loadparams);
     params->get(QUrl("http://192.168.0.1/v1/props"),params);
@@ -265,6 +269,34 @@ void MainWindow::on_shoot(QByteArray data, HttpInterface *iface)
 {
     disconnect(iface,&HttpInterface::finished,this,&MainWindow::on_shoot);
 
+    HttpInterface *params = new HttpInterface();
+    connect(params,&HttpInterface::finished,this,&MainWindow::on_latest_info);
+    params->get(QUrl("http://192.168.0.1/v1/photos/latest/info"),params);
+
+    delete iface;
+}
+
+void MainWindow::on_latest_info(QByteArray data, HttpInterface *iface)
+{
+    disconnect(iface,&HttpInterface::finished,this,&MainWindow::on_latest_info);
+
+    QJsonObject info = QJsonDocument::fromJson(data).object();
+    QJsonValue dir = info.value("dir");
+    QJsonValue pic = info.value("IMGP2769.DNG");
+
+    GalleryNode *node;
+
+    if(!pics.contains(dir.toString()+'/'+pic.toString()))
+    {
+        pics.append(dir.toString()+'/'+pic.toString());
+
+        node = new GalleryNode(dir.toString()+'/'+pic.toString());
+        gallery.append(node);
+        ui->listWidget->addItem(node);
+    }
+
+    ui->labelshot->setPixmap(node->getPicture().pixmap(720,720));
+
     delete iface;
 }
 
@@ -272,19 +304,24 @@ void MainWindow::on_pics(QByteArray data, HttpInterface *iface)
 {
     disconnect(iface,&HttpInterface::finished,this,&MainWindow::on_pics);
     QJsonObject picslist = QJsonDocument::fromJson(data).object();
-    //qDebug() << "picslist\n\n" << picslist;
     QJsonArray dirs = picslist.value("dirs").toArray();
-    //qDebug() << dirs;
     for(int i=0;i<dirs.size();++i)
     {
         QJsonValue name = dirs.at(i).toObject().value("name").toString();
         QJsonArray dir = dirs.at(i).toObject().value("files").toArray();
         for(int j=0;j<dir.size();++j)
         {
-            pics.append(name.toString()+'/'+dir[i].toString());
+            if(!pics.contains(name.toString()+'/'+dir[j].toString()))
+            {
+                pics.append(name.toString()+'/'+dir[j].toString());
+
+                GalleryNode *node = new GalleryNode(name.toString()+'/'+dir[j].toString());
+                gallery.append(node);
+                ui->listWidget->addItem(node);
+            }
+
         }
     }
-    qDebug() << pics;
     delete iface;
 }
 
@@ -293,4 +330,16 @@ void MainWindow::get_pics()
     HttpInterface *params = new HttpInterface();
     connect(params,&HttpInterface::finished,this,&MainWindow::on_pics);
     params->get(QUrl("http://192.168.0.1/v1/photos"),params);
+}
+
+void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
+{
+    GalleryNode *node = dynamic_cast<GalleryNode *>(item);
+    ui->picture->setPixmap(node->getPicture().pixmap(720,720));
+}
+
+void MainWindow::on_listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
+{
+    GalleryNode *node = dynamic_cast<GalleryNode *>(current);
+    ui->picture->setPixmap(node->getPicture().pixmap(720,720));
 }

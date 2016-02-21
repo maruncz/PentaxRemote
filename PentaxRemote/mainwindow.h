@@ -1,18 +1,23 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <functional>
 #include <QMainWindow>
-#include <QStandardItemModel>
-#include <QStandardItem>
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+
 #include <QUrl>
 
+#include <QTimer>
+#include <QIcon>
+#include <QDateTime>
+
+#include <QList>
+
 #include "httpinterface.h"
+#include "gallerynode.h"
 
 namespace Ui {
 class MainWindow;
@@ -56,7 +61,15 @@ private slots:
 
     void on_shoot(QByteArray data, HttpInterface *iface);
 
+    void on_latest_info(QByteArray data, HttpInterface *iface);
+
     void on_pics(QByteArray data, HttpInterface *iface);
+
+    void get_pics();
+
+    void on_listWidget_itemClicked(QListWidgetItem *item);
+
+    void on_listWidget_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
 
 signals:
 
@@ -67,7 +80,10 @@ private:
     QJsonObject props;
     QStringList pics;
 
-    void get_pics();
+    QTimer *refresh;
+
+    QList<GalleryNode*> gallery;
+
 
 };
 
